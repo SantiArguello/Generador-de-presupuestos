@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Presupuesto del Taller</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Generador de Presupuestos</h1>
+    <form id="presupuestoForm">
+        <div>
+            <label for="nombreCliente">Nombre del Cliente:</label>
+            <input type="text" id="nombreCliente" required>
+        </div>
+        <div id="items">
+            <!-- Items se agregarán aquí -->
+        </div>
+        <button id="addItemBtn" type="button">Agregar item</button>
+        <button id="generatePdfBtn" type="button">Generar PDF</button>
+    </form>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
+
