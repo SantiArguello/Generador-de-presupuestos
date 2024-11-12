@@ -12,7 +12,7 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background-color: #f4f4f9;
+    background-color: #000000;
     padding: 20px;
     flex-direction: column;
 }
@@ -20,7 +20,7 @@ body {
 h1 {
     text-align: center;
     font-size: 1.8rem;
-    color: #333;
+    color: #ffffff;
     margin-bottom: 20px;
 }
 
