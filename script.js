@@ -130,12 +130,12 @@ function agregarItem() {
     // setupToggleHandler(nuevoItem);
     
     // Contraer todos los ítems excepto el nuevo
-    //document.querySelectorAll('.itemContent').forEach(content => {
-   //     content.style.display = 'none';
-   // }); 
+    document.querySelectorAll('.itemContent').forEach(content => {
+       content.style.display = 'none';
+   }); 
     
     // Expandir el nuevo ítem
-    // nuevoItem.querySelector('.itemContent').style.display = 'block';
+    nuevoItem.querySelector('.itemContent').style.display = 'block';
     
     // itemsContainer.appendChild(nuevoItem);
     // actualizarTotal();
