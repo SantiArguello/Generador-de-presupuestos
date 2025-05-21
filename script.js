@@ -1,108 +1,291 @@
-// Accede a jsPDF desde el objeto global `window`
-const { jsPDF } = window.jspdf;
+// script.js - Punto de entrada principal
 
+// Importaciones
+import { validarPresupuesto } from "./modules/validaciones.js";
+import { setupDeleteHandler, setupToggleHandler } from "./modules/handlers.js";
+import { generarPDF } from "./modules/pdfGenerator.js";
+window.jspdf = window.jspdf || { jsPDF };
+
+// Variables globales
+let itemsGuardados = JSON.parse(localStorage.getItem("presupuestoItems")) || [];
+
+document.addEventListener('DOMContentLoaded', () => {
+    const elementosRequeridos = [
+        'ivaCheckbox', 
+        'ivaPercentage', 
+        'descuento',  // ¡Este debe coincidir con el ID del input!
+        'totalPreview'
+    ];
+    
+    elementosRequeridos.forEach(id => {
+        if (!document.getElementById(id)) {
+            Swal.fire('Error crítico', `Elemento requerido no encontrado: ${id}`, 'error');
+            throw new Error(`Elemento requerido no encontrado: ${id}`);
+        }
+    });
+});
+
+// Configuración inicial al cargar la página
+document.addEventListener("DOMContentLoaded", () => {
+
+  document.getElementById('limpiarBtn').addEventListener('click', limpiarFormulario);
+
+  // Cargar items guardados
+  cargarItemsGuardados();
+
+  // Event Listeners principales
+  document.getElementById("addItemBtn").addEventListener("click", agregarItem);
+  document
+    .getElementById("generatePdfBtn")
+    .addEventListener("click", generarPDF);
+
+  // Actualización en tiempo real
+  document.getElementById("items").addEventListener("input", actualizarTotal);
+
+  // Control del IVA
+    document.getElementById('ivaCheckbox').addEventListener('change', function() {
+        const ivaInput = document.getElementById('ivaPercentage');
+        ivaInput.disabled = !this.checked;
+        document.getElementById('ivaContainer').classList.toggle('disabled-input', !this.checked);
+        actualizarTotal();
+    });
+
+    document.getElementById('ivaPercentage').addEventListener('input', actualizarTotal);
+});
+
+// Función principal para agregar ítems
 function agregarItem() {
-  const itemsDiv = document.getElementById("items");
-  const nuevoItem = document.createElement("div");
-  nuevoItem.classList.add("item");
-
-  // Crear el HTML de un nuevo ítem con funcionalidad de desplegar/contraer y nombre dinámico en el botón
-  nuevoItem.innerHTML = `
-        <button type="button" class="toggleBtn">Nuevo Item</button>
+    const itemsContainer = document.getElementById("items");
+    const nuevoItem = document.createElement("div");
+    nuevoItem.className = "item mb-3 p-3 border rounded";
+    
+    // Generar IDs únicos para cada input
+    const uniqueId = Date.now();
+    
+    nuevoItem.innerHTML = `
+         <div class="item-header d-flex justify-content-between align-items-center mb-2">
+        <button type="button" 
+                class="toggleBtn btn btn-link text-dark p-0 text-start" 
+                aria-expanded="false">
+            <i class=" me-2"></i>
+            <span class="item-title"> Nuevo Ítem</span>
+        </button>
+        <button type="button" class="deleteBtn btn btn-danger btn-sm">
+            <i class="bi bi-trash"></i>
+        </button>
+    </div>
         <div class="itemContent">
-            <label>Item:</label>
-            <input type="text" class="itemDesc">
-            <label>Cantidad:</label>
-            <input type="number" class="itemQty" step="1">
-            <label>Precio Unidad:</label>
-            <input type="number" class="itemPrice" step="0.01">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="itemDesc-${uniqueId}" class="form-label">Descripción</label>
+                    <input type="text" 
+                           class="form-control itemDesc" 
+                           id="itemDesc-${uniqueId}" 
+                           required>
+                </div>
+                <div class="col-md-3">
+                    <label for="itemQty-${uniqueId}" class="form-label">Cantidad</label>
+                    <input type="number" 
+                           class="form-control itemQty" 
+                           id="itemQty-${uniqueId}" 
+                           min="1" 
+                           value="1"
+                           step="1">
+                </div>
+                <div class="col-md-3">
+                    <label for="itemPrice-${uniqueId}" class="form-label">Precio Unitario</label>
+                    <input type="number" 
+                           class="form-control itemPrice" 
+                           id="itemPrice-${uniqueId}" 
+                           step="0.01" 
+                           min="0">
+                </div>
+            </div>
         </div>
     `;
-  itemsDiv.appendChild(nuevoItem);
 
-  // Contraer todos los demás ítems
-  document.querySelectorAll(".itemContent").forEach((content) => {
-    content.style.display = "none";
-  });
+    // Configurar handlers con validación
+    try {
+        setupDeleteHandler(nuevoItem);
+        setupToggleHandler(nuevoItem);
+    } catch (error) {
+        console.error("Error configurando handlers:", error);
+        Swal.fire('Error', 'No se pudo configurar el ítem', 'error');
+        return;
+    }
 
-  // Expandir el nuevo ítem
-  nuevoItem.querySelector(".itemContent").style.display = "block";
+    // Agregar al DOM
+  itemsContainer.appendChild(nuevoItem);
+  
+  // // // Configurar actualización automática del título
+    const descInput = nuevoItem.querySelector('.itemDesc');
+    const titleSpan = nuevoItem.querySelector('.item-title');
+    
+    descInput.addEventListener('input', () => {
+        titleSpan.textContent = descInput.value.trim() || 'Nuevo Ítem';
+    });
 
-  // Event listener para el botón de expandir/contraer
-  const toggleBtn = nuevoItem.querySelector(".toggleBtn");
-  const itemDescInput = nuevoItem.querySelector(".itemDesc");
+    // Configurar handlers y resto de la lógica...
+    // setupDeleteHandler(nuevoItem);
+    // setupToggleHandler(nuevoItem);
+    
+    // Contraer todos los ítems excepto el nuevo
+    //document.querySelectorAll('.itemContent').forEach(content => {
+   //     content.style.display = 'none';
+   // }); 
+    
+    // Expandir el nuevo ítem
+    // nuevoItem.querySelector('.itemContent').style.display = 'block';
+    
+    // itemsContainer.appendChild(nuevoItem);
+    // actualizarTotal();
+    // guardarEnLocalStorage();
 
-  toggleBtn.addEventListener("click", () => {
-    const content = nuevoItem.querySelector(".itemContent");
-    content.style.display = content.style.display === "none" ? "block" : "none";
-  });
-
-  // Actualizar el texto del botón con el nombre del ítem en tiempo real
-  itemDescInput.addEventListener("input", () => {
-    toggleBtn.textContent = itemDescInput.value || "Nuevo Item";
-  });
+    // Actualizar totales después de que el DOM se haya renderizado
+    setTimeout(() => {
+        try {
+            actualizarTotal();
+            guardarEnLocalStorage();
+        } catch (error) {
+            console.error("Error post-agregar:", error);
+            Swal.fire('Error', 'No se pudo actualizar los totales', 'error');
+        }
+    }, 100); // Aumentar el delay si es necesario
 }
 
-function generarPDF() {
-  const nombreCliente =
-    document.getElementById("nombreCliente").value || "Sin nombre";
-  const items = document.querySelectorAll(".item");
-  const fecha = new Date().toLocaleDateString();
-  const tallerInfo = {
-    nombre: "MECANICA ARGUELLO",
-    cuit: "20-39689491-3",
-    direccion: "ÁNGEL AVALOS 720, CORDOBA ARGENTINA",
-    tel: "3516511743",
-  };
+// Función para actualizar totales en tiempo real
+export function actualizarTotal() {
+    try {
+        const items = document.querySelectorAll('.item');
+        let subtotal = 0;
 
-  // Configurar jsPDF y cargar el logo
-  const doc = new jsPDF();
-  const logoPath = "logo.png"; // Ruta de la imagen del logo en la carpeta del proyecto
+        items.forEach(item => {
+            const qtyInput = item.querySelector('.itemQty');
+            const priceInput = item.querySelector('.itemPrice');
+            
+            // Validación crítica
+            if (!qtyInput || !priceInput) {
+                console.warn('Elementos no encontrados en el ítem:', item);
+                return;
+            }
 
-  // Añadir el logo con tamaño ajustado a 40x30 y posición en la esquina superior izquierda
-  doc.addImage(logoPath, "PNG", 10, 10, 40, 30);
+            const cantidad = Number(qtyInput?.value || 0);
+            const precio = Number(priceInput?.value || 0);
+            
+            subtotal += cantidad * precio;
+        });
 
-  // Desplazar la información del taller hacia la derecha
-  doc.setFontSize(14);
-  doc.text(tallerInfo.nombre, 60, 15); // Cambiado de 50 a 60 en X
-  doc.setFontSize(10);
-  doc.text(`CUIT: ${tallerInfo.cuit}`, 60, 20);
-  doc.text(tallerInfo.direccion, 60, 25);
-  doc.text(`TEL: ${tallerInfo.tel}`, 60, 30);
-  doc.text(`FECHA: ${fecha}`, 150, 15);
-  doc.text(`PARA: ${nombreCliente}`, 150, 25);
+        const ivaCheckbox = document.getElementById('ivaCheckbox');
+        const ivaInput = document.getElementById('ivaPercentage');
+        const descuentoInput = document.getElementById('descuento');
+        
+        // Validar elementos del formulario
+        if (!ivaCheckbox || !ivaInput || !descuentoInput) {
+            console.error('Elementos de configuración no encontrados');
+            return;
+        }
 
-  doc.setFontSize(12);
-  doc.text("NOMBRE", 10, 50);
-  doc.text("CANTIDAD", 80, 50);
-  doc.text("COSTO UNIDAD", 120, 50);
-  doc.text("TOTAL", 170, 50);
-  doc.setLineWidth(0.5);
-  doc.line(10, 52, 200, 52);
+        const iva = ivaCheckbox.checked ? subtotal * Number(ivaInput.value || 0) / 100 : 0
+        const descuento = Number(descuentoInput.value || 0);
+        const total = (subtotal + iva) * (1 - descuento / 100);
 
-  let y = 60;
-  let total = 0;
-
-  items.forEach((item) => {
-    const desc = item.querySelector(".itemDesc").value || "Sin descripción";
-    const qty = parseInt(item.querySelector(".itemQty").value) || 1;
-    const unitPrice = parseFloat(item.querySelector(".itemPrice").value) || 0;
-    const itemTotal = qty * unitPrice;
-
-    doc.text(desc, 10, y);
-    doc.text(String(qty), 85, y);
-    doc.text(`$${unitPrice.toFixed(2)}`, 125, y);
-    doc.text(`$${itemTotal.toFixed(2)}`, 175, y);
-    y += 10;
-    total += itemTotal;
-  });
-
-  doc.setFontSize(12);
-  doc.text(`TOTAL: $${total.toFixed(2)}`, 150, y + 10);
-  doc.setFontSize(10);
-
-  doc.save(`Presupuesto_${nombreCliente}.pdf`);
+        const totalPreview = document.getElementById('totalPreview');
+        if (totalPreview) {
+            totalPreview.textContent = `$${total.toFixed(2)}`;
+        }
+    } catch (error) {
+        console.error('Error en actualizarTotal:', error);
+    }
 }
 
-document.getElementById("addItemBtn").addEventListener("click", agregarItem);
-document.getElementById("generatePdfBtn").addEventListener("click", generarPDF);
+function calcularSubtotal(items) {
+    return Array.from(items).reduce((acc, item) => {
+        const qty = parseFloat(item.querySelector('.itemQty').value) || 0;
+        const price = parseFloat(item.querySelector('.itemPrice').value) || 0;
+        return acc + (qty * price);
+    }, 0);
+}
+
+// Sistema de guardado automático
+function guardarEnLocalStorage() {
+    // Guardar items
+    const items = Array.from(document.querySelectorAll('.item')).map(item => ({
+        desc: item.querySelector('.itemDesc')?.value || '',
+        qty: item.querySelector('.itemQty')?.value || '1',
+        price: item.querySelector('.itemPrice')?.value || '0'
+    }));
+    
+    // Guardar configuración de IVA
+    const ivaConfig = {
+        aplicado: document.getElementById('ivaCheckbox').checked,
+        valor: document.getElementById('ivaPercentage').value
+    };
+    
+    // Guardar todo
+    localStorage.setItem('presupuestoItems', JSON.stringify(items));
+    localStorage.setItem('ivaConfig', JSON.stringify(ivaConfig));
+}
+
+function cargarItemsGuardados() {
+    try {
+        const itemsGuardados = JSON.parse(localStorage.getItem('presupuestoItems')) || [];
+        const ivaConfig = JSON.parse(localStorage.getItem('ivaConfig')) || { aplicado: false, valor: 21 };
+
+        // Cargar configuración IVA
+        if (document.getElementById('ivaCheckbox') && document.getElementById('ivaPercentage')) {
+            document.getElementById('ivaCheckbox').checked = ivaConfig.aplicado;
+            document.getElementById('ivaPercentage').value = ivaConfig.valor;
+            document.getElementById('ivaPercentage').disabled = !ivaConfig.aplicado;
+            document.getElementById('ivaContainer').classList.toggle('disabled-input', !ivaConfig.aplicado);
+        }
+
+        // Cargar ítems
+        itemsGuardados.forEach(item => {
+            try {
+                agregarItem();
+                const items = document.querySelectorAll('.item');
+                const ultimoItem = items[items.length - 1];
+                
+                if (ultimoItem) {
+                    ultimoItem.querySelector('.itemDesc').value = item.desc || '';
+                    ultimoItem.querySelector('.itemQty').value = item.qty || '1';
+                    ultimoItem.querySelector('.itemPrice').value = item.price || '0';
+                }
+            } catch (error) {
+                console.error('Error cargando ítem:', item, error);
+            }
+        });
+    } catch (error) {
+        console.error('Error cargando datos guardados:', error);
+        Swal.fire('Error', 'No se pudieron cargar los datos guardados', 'error');
+    }
+}
+
+// Función para limpiar formulario (opcional)
+export function limpiarFormulario() {
+    try {
+        // Limpiar formulario
+        document.getElementById("presupuestoForm").reset();
+        
+        // Limpiar items
+        document.getElementById("items").innerHTML = "";
+        
+        // Limpiar localStorage completamente
+        localStorage.removeItem("presupuestoItems");
+        localStorage.removeItem("ivaConfig");
+        
+        // Resetear campos especiales
+        document.getElementById('ivaCheckbox').checked = false;
+        document.getElementById('ivaPercentage').disabled = true;
+        document.getElementById('ivaContainer').classList.add('disabled-input');
+        
+        // Forzar actualización
+        actualizarTotal();
+        
+        Swal.fire('¡Formulario limpiado!', 'Todos los datos han sido reseteados', 'success');
+    } catch (error) {
+        console.error("Error limpiando formulario:", error);
+        Swal.fire('Error', 'No se pudo limpiar el formulario', 'error');
+    }
+}
+

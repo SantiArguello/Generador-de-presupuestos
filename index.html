@@ -3,25 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Presupuesto del Taller</title>
+    <title>Generador de Presupuestos - Taller Mecánico</title>
     <link rel="icon" href="logo.png" type="image/png">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- Estilos personalizados -->
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-    <h1>Generador de Presupuestos</h1>
-    <form id="presupuestoForm">
-        <div>
-            <label for="nombreCliente">Nombre del Cliente:</label>
-            <input type="text" id="nombreCliente" required>
+<body class="bg-light">
+    <div class="container py-5">
+        <header class="text-center mb-5">
+            <img src="logo.png" alt="Logo Taller" class="mb-3 logo-img">
+            <h1 class="display-5 fw-bold">Generador de Presupuestos</h1>
+            <p class="lead text-muted">Sistema profesional para creación de presupuestos</p>
+        </header>
+
+        <main class="presupuesto-card">
+            <form id="presupuestoForm">
+                <!-- Sección Cliente -->
+                <section class="section mb-4">
+                    <h2 class="h5 mb-3"><i class="bi bi-person-fill me-2"></i>Datos del Cliente</h2>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="nombreCliente" class="form-label">Nombre Completo <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="nombreCliente" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="motoCliente" class="form-label">Moto</label>
+                            <input type="text" class="form-control" id="motoCliente">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="patenteCliente" class="form-label">Patente</label>
+                            <input type="text" class="form-control" id="patenteCliente">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Sección Ítems -->
+                <section class="section mb-4">
+                    <div class="section-header">
+                        <h2 class="h5 m-0"><i class="bi bi-list-check me-2"></i>Ítems del Presupuesto</h2>
+                        <button type="button" id="addItemBtn" class="btn btn-primary btn-sm">
+                            <i class="bi bi-plus-circle me-2"></i>Agregar Ítem
+                        </button>
+                    </div>
+                    <div id="items" class="items-container"></div>
+                </section>
+
+                <!-- Sección Totales -->
+                <section class="section mb-4">
+    <h2 class="h5 mb-3"><i class="bi bi-calculator-fill me-2"></i>Cálculos Finales</h2>
+    <div class="row g-3">
+        <div class="col-md-4">
+    <div class="form-check form-switch mb-2">
+        <input class="form-check-input" type="checkbox" id="ivaCheckbox">
+        <label class="form-check-label" for="ivaCheckbox">Aplicar IVA</label>
+    </div>
+    <div id="ivaContainer" class="disabled-input">
+        <label for="ivaPercentage" class="form-label">% IVA</label>
+        <input type="number" class="form-control" 
+               id="ivaPercentage" 
+               value="21" 
+               min="0" 
+               step="0.1"
+               disabled>
+    </div>
+</div>
+        <div class="col-md-4">
+    <label for="descuento" class="form-label">Descuento (%)</label>
+    <input type="number" 
+           class="form-control" 
+           id="descuento" 
+           value="0" 
+           min="0" 
+           step="0.1">
+</div>
+        <div class="col-md-4">
+            <label class="form-label">Total Estimado</label>
+            <div class="total-preview" id="totalPreview">$0.00</div>
         </div>
-        <div id="items">
-            <!-- Items se agregarán aquí -->
-        </div>
-        <button id="addItemBtn" type="button">Agregar item</button>
-        <button id="generatePdfBtn" type="button">Generar PDF</button>
-    </form>
+    </div>
+</section>
+
+                <!-- Botones de Acción -->
+                <div class="d-flex justify-content-between gap-3">
+                    <button type="button" id="limpiarBtn" class="btn btn-warning">
+        <i class="bi bi-eraser"></i> Limpiar Todo
+    </button>
+                 <!--   <button type="button" id="guardarBorradorBtn" class="btn btn-outline-primary">
+                        <i class="bi bi-save me-2"></i>Guardar Borrador
+                    </button> -->
+                    <button type="button" id="generatePdfBtn" class="btn btn-success">
+                        <i class="bi bi-file-earmark-pdf me-2"></i>Generar PDF
+                    </button>
+                </div>
+            </form>
+        </main>
+    </div>
+
+    <!-- Dependencias -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
-    <script src="script.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script type="module" src="script.js"></script>
+    
+    <!-- Módulos ES6 -->
+    <script type="module" src="script.js"></script>
 </body>
 </html>
-
