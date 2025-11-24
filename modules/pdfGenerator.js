@@ -10,7 +10,7 @@ const configPDF = {
     },
     logo: {
         width: 40,
-        height: 30,
+        height: 40,
         path: 'logo.png'
     },
     fonts: {
@@ -23,12 +23,12 @@ const configPDF = {
 
 // Información del taller (puede moverse a un archivo constants.js si prefieres)
 const tallerInfo = {
-    nombre: "MECANICA ARGUELLO",
-    eslogan: "Service Especializado Benelli",
+    nombre: "Service Benelli",
+    eslogan: "Service Oficial Benelli",
     cuit: "20-39689491-3",
     direccion: "ÁNGEL AVALOS 720, CORDOBA ARGENTINA",
     telefono: "3516511743",
-    email: "contacto@mecanicarguello.com"
+    email: "FernandoJBR74@gmail.com"
 };
 
 export function generarPDF() {
