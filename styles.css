@@ -25,6 +25,8 @@ body {
     min-height: 100vh;
 }
 
+
+
 /* Encabezado Principal */
 .header {
     text-align: center;
@@ -32,9 +34,17 @@ body {
 }
 
 .logo {
-    height: -50px;
+    height: 80px;
     margin-bottom: 1rem;
 }
+/* Logo responsive */
+.logo-img {
+    max-width: 200px;      /* tamaño máximo en desktop */
+    width: 100%;           /* se achica automáticamente */
+    height: auto;
+}
+
+
 
 /* Contenedor Principal */
 .container {
@@ -165,6 +175,9 @@ body {
     
     .item-header {
         padding: 0.5rem;
+    }
+    .logo-img {
+        max-width: 200px;  /* tamaño para celular */
     }
 }
 
